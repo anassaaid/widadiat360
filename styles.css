@@ -265,6 +265,18 @@ button, a { -webkit-tap-highlight-color: transparent; }
   color: var(--muted);
   font-size: 0.95rem;
 }
+.tax[dir="ltr"] {
+  direction: ltr;
+  text-align: start;
+}
+.estimate {
+  margin: 0.4rem 0 0;
+  padding: 0;
+  list-style: none;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+.estimate li { margin: 0.1rem 0; }
 .contacts { display: flex; flex-direction: column; gap: 0.7rem; }
 .contacts a { text-decoration: none; }
 .who { font-size: 0.95rem; }
