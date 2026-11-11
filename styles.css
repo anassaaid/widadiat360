@@ -316,7 +316,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
   display: grid;
   grid-template-columns: minmax(220px, 0.82fr) 1.18fr;
   gap: 1.5rem;
-  align-items: center;
+  align-items: start;
   margin-top: 2.6rem;
 }
 .feature-flip { grid-template-columns: 1.18fr minmax(220px, 0.82fr); }
@@ -406,18 +406,21 @@ button, a { -webkit-tap-highlight-color: transparent; }
   direction: ltr;
 }
 #view {
-  width: min(880px, 96vw);
+  width: fit-content;
+  max-width: 96vw;
   max-height: 96vh;
-  padding: 0.7rem 0.7rem 0.85rem;
+  padding: 0.55rem 0.55rem 0.7rem;
   border: 0;
   border-radius: 16px;
   background: var(--navy);
   color: #fff;
 }
 #view img {
-  width: 100%;
+  display: block;
+  width: auto;
+  max-width: min(520px, 92vw);
   max-height: 82vh;
-  object-fit: contain;
+  height: auto;
   border-radius: 10px;
   background: #fff;
 }
