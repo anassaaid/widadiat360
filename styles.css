@@ -437,6 +437,14 @@ button, a { -webkit-tap-highlight-color: transparent; }
   letter-spacing: 0.04em;
   color: var(--navy);
 }
+.invite {
+  margin: 0.75rem 0 0;
+  max-width: 28rem;
+  color: var(--ink);
+  font-size: clamp(1.15rem, 2.4vw, 1.45rem);
+  line-height: 1.7;
+  font-weight: 700;
+}
 .days, .axes {
   margin: 0.8rem 0 0;
   padding: 0;
