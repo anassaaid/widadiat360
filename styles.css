@@ -298,10 +298,53 @@ button, a { -webkit-tap-highlight-color: transparent; }
   font-size: 0.95rem;
 }
 .estimate li { margin: 0.1rem 0; }
-.hosts {
+.amicales {
   position: relative;
   z-index: 3;
   margin-top: -1.2rem;
+  padding: 1.4rem 0 0.4rem;
+}
+.amicales-label {
+  margin: 0 0 1rem;
+  text-align: center;
+  color: var(--navy);
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+.amicales-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(1rem, 4vw, 2.4rem);
+  flex-wrap: wrap;
+  padding: 1.1rem 1.4rem;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  box-shadow: 0 18px 44px rgba(12, 27, 51, 0.1);
+}
+.amicale {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: min(220px, 42vw);
+}
+.amicale img {
+  width: auto;
+  height: clamp(72px, 12vw, 110px);
+  object-fit: contain;
+}
+.amicales-sep {
+  width: 1px;
+  height: 4.2rem;
+  background: linear-gradient(180deg, transparent, var(--gold), transparent);
+  flex: 0 0 auto;
+}
+.hosts {
+  position: relative;
+  z-index: 3;
+  margin-top: 0.6rem;
   padding-top: 0.9rem;
   padding-bottom: 1.2rem;
 }
@@ -549,6 +592,12 @@ button, a { -webkit-tap-highlight-color: transparent; }
 }
 @media (max-width: 640px) {
   .grid { grid-template-columns: 1fr; }
+  .amicales-sep {
+    width: 4.5rem;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  }
+  .amicale img { height: 88px; }
   .brand span { display: none; }
   .dock {
     display: block;
