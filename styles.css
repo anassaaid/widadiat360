@@ -298,13 +298,14 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .hosts {
   position: relative;
   z-index: 3;
-  margin-top: -2.6rem;
+  margin-top: -1.2rem;
+  padding-top: 0.9rem;
   padding-bottom: 1.2rem;
 }
 .hosts .kicker,
 .hosts h2,
 .hosts .intro { text-align: center; }
-.hosts h2 { margin: 0 0 0.35rem; font-size: clamp(1.6rem, 3vw, 2.2rem); }
+.hosts h2 { margin: 0.45rem 0 0.35rem; font-size: clamp(1.6rem, 3vw, 2.2rem); }
 .hosts .intro { margin-inline: auto; }
 .host-grid {
   display: grid;
