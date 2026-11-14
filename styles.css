@@ -388,7 +388,20 @@ button, a { -webkit-tap-highlight-color: transparent; }
 }
 .foot a { color: var(--gold-2); }
 
-.album .kicker { color: var(--gold); }
+.album .kicker,
+.doc-label {
+  color: var(--navy);
+  letter-spacing: 0;
+  font-size: clamp(1.05rem, 2.2vw, 1.25rem);
+  font-weight: 800;
+  line-height: 1.5;
+}
+.album .doc-label {
+  display: inline-block;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 2px solid var(--gold);
+}
 .feature {
   display: grid;
   grid-template-columns: minmax(220px, 0.82fr) 1.18fr;
