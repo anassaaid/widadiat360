@@ -499,6 +499,10 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .who-block b { font-size: 1.02rem; white-space: nowrap; }
 .who-block span { color: var(--muted); font-size: 0.88rem; line-height: 1.45; }
 .who-block .btn { min-height: 40px; justify-self: start; }
+.panel .who-block .btn-wa,
+.panel .who-block .btn-wa .ltr {
+  color: #fff;
+}
 .mail {
   color: var(--navy-2);
   font-size: 0.92rem;
