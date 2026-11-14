@@ -132,8 +132,16 @@ button, a { -webkit-tap-highlight-color: transparent; }
   font-style: normal;
   color: var(--gold-2);
 }
-.lead {
+.tagline {
   margin: 1rem auto 0;
+  max-width: 40rem;
+  color: var(--gold-2);
+  font-size: clamp(1.05rem, 2.4vw, 1.35rem);
+  line-height: 1.7;
+  font-weight: 600;
+}
+.lead {
+  margin: 1.15rem auto 0;
   max-width: 46rem;
   color: rgba(255, 255, 255, 0.86);
 }
