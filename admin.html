@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="fr" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Connexion — Back-office Widadiates 360°</title>
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="theme-color" content="#0b2a4a">
+  <link rel="icon" href="assets/embleme.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="admin.css?v=3">
+</head>
+<body class="login-page">
+  <main class="login-screen">
+    <div class="login-card">
+      <img src="assets/embleme.png" alt="" width="56" height="56">
+      <h1>Back-office réservations</h1>
+      <p>Formulaire public — /inscription</p>
+      <form id="login-form" action="/reservations" method="get">
+        <label for="username">Identifiant</label>
+        <input type="text" id="username" name="username" required autocomplete="username" autofocus>
+
+        <label for="password">Mot de passe</label>
+        <input type="password" id="password" name="password" required autocomplete="current-password">
+
+        <p class="admin-error" id="login-error" hidden></p>
+        <button class="login-btn" type="submit" id="login-btn">Connexion</button>
+      </form>
+    </div>
+  </main>
+
+  <script>
+    (function () {
+      var TOKEN_KEY = 'amicale360_admin_token';
+      var ADMIN_KEY = 'amicale360_admin_user';
+      if (localStorage.getItem(TOKEN_KEY)) {
+        window.location.replace('/reservations');
+        return;
+      }
+
+      var form = document.getElementById('login-form');
+      var btn = document.getElementById('login-btn');
+      var err = document.getElementById('login-error');
+
+      form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        err.hidden = true;
+        var username = document.getElementById('username').value.trim();
+        var password = document.getElementById('password').value;
+        if (!username || !password) {
+          err.hidden = false;
+          err.textContent = 'Saisissez identifiant et mot de passe.';
+          return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = 'Connexion…';
+
+        try {
+          var res = await fetch('/api/auth', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: username, password: password })
+          });
+          var data = {};
+          try { data = await res.json(); } catch (parseErr) {}
+
+          if (!res.ok || !data.token) {
+            throw new Error(data.error || 'Identifiant ou mot de passe incorrect');
+          }
+
+          localStorage.setItem(TOKEN_KEY, data.token);
+          if (data.admin) localStorage.setItem(ADMIN_KEY, JSON.stringify(data.admin));
+          window.location.href = '/reservations';
+        } catch (ex) {
+          err.hidden = false;
+          err.textContent = ex.message || 'Connexion impossible';
+          btn.disabled = false;
+          btn.textContent = 'Connexion';
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

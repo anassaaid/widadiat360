@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="fr" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Administrateurs — Back-office Widadiates 360°</title>
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="theme-color" content="#0b2a4a">
+  <link rel="icon" href="assets/embleme.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="admin.css?v=3">
+</head>
+<body class="admin-body">
+  <header class="admin-top">
+    <div class="admin-brand">
+      <img src="assets/embleme.png" alt="">
+      <div>
+        <strong>Back-office</strong>
+        <span id="who">Académie Widadiates 360°</span>
+      </div>
+    </div>
+    <nav class="admin-nav">
+      <a href="/reservations">Réservations</a>
+      <a class="is-active" href="/admins">Admins</a>
+    </nav>
+    <div class="admin-top-actions">
+      <button class="btn btn-gold" type="button" id="logout-btn">Déconnexion</button>
+    </div>
+  </header>
+
+  <main class="wrap admin-main">
+    <div class="admin-page-head">
+      <div>
+        <h1>Administrateurs</h1>
+        <p>Gérer les comptes qui peuvent accéder au back-office.</p>
+      </div>
+      <button class="btn btn-gold" type="button" id="add-btn">Nouvel admin</button>
+    </div>
+
+    <p class="admin-error" id="page-error" hidden></p>
+
+    <div class="panel admin-table-wrap">
+      <table class="admin-table admin-table-compact">
+        <thead>
+          <tr>
+            <th>Identifiant</th>
+            <th>Nom</th>
+            <th>Créé le</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+      <p class="admin-empty" id="empty" hidden>Aucun administrateur.</p>
+    </div>
+  </main>
+
+  <dialog id="editor">
+    <form method="dialog" class="admin-detail" id="editor-form">
+      <header>
+        <h2 id="editor-title">Nouvel admin</h2>
+        <button type="submit" class="admin-close" value="cancel" aria-label="Fermer">×</button>
+      </header>
+      <label>
+        Identifiant
+        <input type="text" id="edit-username" required autocomplete="off" placeholder="ex: aymen">
+      </label>
+      <label>
+        Nom affiché
+        <input type="text" id="edit-name" placeholder="ex: Aymen Medini">
+      </label>
+      <label>
+        Mot de passe <span id="pwd-hint">(obligatoire)</span>
+        <input type="password" id="edit-password" autocomplete="new-password" placeholder="••••••••">
+      </label>
+      <p class="admin-error" id="editor-error" hidden></p>
+      <div class="admin-detail-actions">
+        <button class="btn btn-line" type="button" id="delete-btn" hidden>Supprimer</button>
+        <button class="btn btn-gold" type="button" id="save-btn">Enregistrer</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script>
+    (function () {
+      var TOKEN_KEY = 'amicale360_admin_token';
+      var ADMIN_KEY = 'amicale360_admin_user';
+      var items = [];
+      var me = null;
+      var currentId = null;
+
+      function token() { return localStorage.getItem(TOKEN_KEY) || ''; }
+      if (!token()) {
+        window.location.replace('/admin');
+        return;
+      }
+
+      try { me = JSON.parse(localStorage.getItem(ADMIN_KEY) || 'null'); } catch (e) { me = null; }
+      if (me && me.username) {
+        document.getElementById('who').textContent = me.username;
+      }
+
+      var rowsEl = document.getElementById('rows');
+      var emptyEl = document.getElementById('empty');
+      var pageError = document.getElementById('page-error');
+      var editor = document.getElementById('editor');
+
+      function authHeaders() {
+        return {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer ' + token()
+        };
+      }
+
+      function escapeHtml(str) {
+        return String(str || '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;');
+      }
+
+      function fmtDate(iso) {
+        if (!iso) return '—';
+        return new Date(iso).toLocaleString('fr-TN', {
+          day: '2-digit', month: '2-digit', year: 'numeric',
+          hour: '2-digit', minute: '2-digit'
+        });
+      }
+
+      async function api(path, options) {
+        options = options || {};
+        var fetchOpts = {
+          method: options.method || 'GET',
+          headers: options.headers || {}
+        };
+        if (options.body != null) fetchOpts.body = options.body;
+        var res = await fetch(path, fetchOpts);
+        var data = {};
+        try { data = await res.json(); } catch (e) {}
+        if (res.status === 401) {
+          localStorage.removeItem(TOKEN_KEY);
+          localStorage.removeItem(ADMIN_KEY);
+          window.location.replace('/admin');
+          throw new Error('Session expirée');
+        }
+        if (!res.ok) throw new Error(data.error || ('Erreur API (' + res.status + ')'));
+        return data;
+      }
+
+      async function loadData() {
+        pageError.hidden = true;
+        var data = await api('/api/admins', { headers: authHeaders() });
+        items = data.items || [];
+        if (data.me) me = data.me;
+        renderTable();
+      }
+
+      function renderTable() {
+        rowsEl.innerHTML = '';
+        emptyEl.hidden = items.length > 0;
+        items.forEach(function (item) {
+          var tr = document.createElement('tr');
+          var isMe = me && (me.adminId === item.id || me.username === item.username);
+          tr.innerHTML =
+            '<td><strong>' + escapeHtml(item.username) + '</strong>' +
+            (isMe ? ' <span class="pill st-confirmed">vous</span>' : '') + '</td>' +
+            '<td>' + escapeHtml(item.name || '—') + '</td>' +
+            '<td>' + fmtDate(item.createdAt) + '</td>' +
+            '<td><button class="btn btn-line dark" type="button" data-id="' + escapeHtml(item.id) + '">Modifier</button></td>';
+          tr.querySelector('button').addEventListener('click', function () {
+            openEditor(item.id);
+          });
+          rowsEl.appendChild(tr);
+        });
+      }
+
+      function openEditor(id) {
+        currentId = id || null;
+        var err = document.getElementById('editor-error');
+        err.hidden = true;
+        document.getElementById('editor-title').textContent = id ? 'Modifier admin' : 'Nouvel admin';
+        document.getElementById('pwd-hint').textContent = id ? '(laisser vide pour ne pas changer)' : '(obligatoire)';
+        document.getElementById('edit-password').required = !id;
+        document.getElementById('edit-password').value = '';
+        document.getElementById('delete-btn').hidden = !id;
+
+        if (id) {
+          var item = items.find(function (x) { return x.id === id; });
+          if (!item) return;
+          document.getElementById('edit-username').value = item.username || '';
+          document.getElementById('edit-name').value = item.name || '';
+          var isMe = me && (me.adminId === item.id || me.username === item.username);
+          document.getElementById('delete-btn').hidden = !!isMe;
+        } else {
+          document.getElementById('edit-username').value = '';
+          document.getElementById('edit-name').value = '';
+        }
+        editor.showModal();
+      }
+
+      document.getElementById('add-btn').addEventListener('click', function () {
+        openEditor(null);
+      });
+
+      document.getElementById('logout-btn').addEventListener('click', function () {
+        localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(ADMIN_KEY);
+        window.location.href = '/admin';
+      });
+
+      document.getElementById('save-btn').addEventListener('click', async function () {
+        var err = document.getElementById('editor-error');
+        err.hidden = true;
+        var payload = {
+          username: document.getElementById('edit-username').value.trim(),
+          name: document.getElementById('edit-name').value.trim(),
+          password: document.getElementById('edit-password').value
+        };
+        try {
+          if (currentId) {
+            if (!payload.password) delete payload.password;
+            await api('/api/admins/' + currentId, {
+              method: 'PATCH',
+              headers: authHeaders(),
+              body: JSON.stringify(payload)
+            });
+          } else {
+            await api('/api/admins', {
+              method: 'POST',
+              headers: authHeaders(),
+              body: JSON.stringify(payload)
+            });
+          }
+          editor.close();
+          await loadData();
+        } catch (ex) {
+          err.hidden = false;
+          err.textContent = ex.message;
+        }
+      });
+
+      document.getElementById('delete-btn').addEventListener('click', async function () {
+        if (!currentId || !confirm('Supprimer cet administrateur ?')) return;
+        try {
+          await api('/api/admins/' + currentId, {
+            method: 'DELETE',
+            headers: authHeaders()
+          });
+          editor.close();
+          await loadData();
+        } catch (ex) {
+          document.getElementById('editor-error').hidden = false;
+          document.getElementById('editor-error').textContent = ex.message;
+        }
+      });
+
+      loadData().catch(function (e) {
+        pageError.hidden = false;
+        pageError.textContent = e.message || 'Chargement impossible';
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="fr" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Réservations PMDEAF — Back-office</title>
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="theme-color" content="#0b2a4a">
+  <link rel="icon" href="assets/embleme.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="admin.css?v=3">
+</head>
+<body class="admin-body">
+  <header class="admin-top">
+    <div class="admin-brand">
+      <img src="assets/embleme.png" alt="">
+      <div>
+        <strong>Back-office PMDEAF</strong>
+        <span id="who">/inscription-pmdeaf</span>
+      </div>
+    </div>
+    <nav class="admin-nav">
+      <a class="is-active" href="/reservations-pmdeaf">Réservations PMDEAF</a>
+      <a href="/admins">Admins</a>
+    </nav>
+    <div class="admin-top-actions">
+      <button class="btn btn-line" type="button" id="refresh-btn">Actualiser</button>
+      <button class="btn btn-line" type="button" id="export-participants">Excel participants</button>
+      <button class="btn btn-line" type="button" id="export-inscrits">Excel inscrits</button>
+      <button class="btn btn-line" type="button" id="export-chambres">Excel chambres</button>
+      <button class="btn btn-gold" type="button" id="logout-btn">Déconnexion</button>
+    </div>
+  </header>
+
+  <main class="wrap admin-main">
+    <p class="admin-error" id="page-error" hidden></p>
+    <div class="admin-stats" id="stats"></div>
+
+    <div class="panel admin-toolbar">
+      <input type="search" id="search" placeholder="Rechercher nom, téléphone, email…">
+      <select id="filter-payment">
+        <option value="">Tous les paiements</option>
+        <option value="pending">En attente</option>
+        <option value="paid">Payé</option>
+        <option value="later">Plus tard</option>
+      </select>
+      <select id="filter-status">
+        <option value="">Tous les statuts</option>
+        <option value="new">Nouveau</option>
+        <option value="confirmed">Confirmé</option>
+        <option value="cancelled">Annulé</option>
+      </select>
+    </div>
+
+    <div class="panel admin-table-wrap">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Nom</th>
+            <th>Formule</th>
+            <th>Pers.</th>
+            <th>Total</th>
+            <th>Paiement</th>
+            <th>Statut</th>
+            <th>Présence</th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+      <p class="admin-empty" id="empty" hidden>Aucune réservation.</p>
+    </div>
+  </main>
+
+  <dialog id="detail">
+    <form method="dialog" class="admin-detail" id="detail-form">
+      <header>
+        <h2 id="detail-title">Réservation</h2>
+        <button type="submit" class="admin-close" value="cancel" aria-label="Fermer">×</button>
+      </header>
+      <div class="admin-detail-grid" id="detail-meta"></div>
+      <label>
+        Statut inscription
+        <select id="edit-status">
+          <option value="new">Nouveau</option>
+          <option value="confirmed">Confirmé</option>
+          <option value="cancelled">Annulé</option>
+        </select>
+      </label>
+      <label>
+        Statut paiement
+        <select id="edit-payment">
+          <option value="pending">En attente</option>
+          <option value="paid">Payé</option>
+          <option value="later">Plus tard</option>
+        </select>
+      </label>
+      <label>
+        N° de chambre
+        <input type="text" id="edit-room-number" placeholder="ex: 214">
+      </label>
+      <label>
+        Notes
+        <textarea id="edit-notes" rows="3"></textarea>
+      </label>
+      <p class="admin-error" id="detail-error" hidden></p>
+      <div class="admin-detail-actions">
+        <button class="btn btn-line" type="button" id="delete-btn">Supprimer</button>
+        <button class="btn btn-gold" type="button" id="save-btn">Enregistrer</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script>
+    (function () {
+      var TOKEN_KEY = 'amicale360_admin_token';
+      var ADMIN_KEY = 'amicale360_admin_user';
+      var SOURCE = 'pmdeaf';
+      var items = [];
+      var currentId = null;
+
+      function token() { return localStorage.getItem(TOKEN_KEY) || ''; }
+      if (!token()) {
+        window.location.replace('/admin2');
+        return;
+      }
+      try {
+        var me = JSON.parse(localStorage.getItem(ADMIN_KEY) || 'null');
+        if (me && me.username) document.getElementById('who').textContent = me.username;
+      } catch (e) {}
+
+      var rowsEl = document.getElementById('rows');
+      var emptyEl = document.getElementById('empty');
+      var statsEl = document.getElementById('stats');
+      var detail = document.getElementById('detail');
+      var pageError = document.getElementById('page-error');
+
+      function authHeaders() {
+        return {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer ' + token()
+        };
+      }
+
+      function money(n) {
+        return (Number(n) || 0).toLocaleString('fr-TN') + ' د';
+      }
+
+      function fmtDate(iso) {
+        if (!iso) return '—';
+        return new Date(iso).toLocaleString('fr-TN', {
+          day: '2-digit', month: '2-digit', year: 'numeric',
+          hour: '2-digit', minute: '2-digit'
+        });
+      }
+
+      function paymentLabel(v) {
+        return ({ pending: 'En attente', paid: 'Payé', later: 'Plus tard' })[v] || v || '—';
+      }
+
+      function statusLabel(v) {
+        return ({ new: 'Nouveau', confirmed: 'Confirmé', cancelled: 'Annulé' })[v] || v || '—';
+      }
+
+      function escapeHtml(str) {
+        return String(str || '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;');
+      }
+
+      async function api(path, options) {
+        options = options || {};
+        var fetchOpts = {
+          method: options.method || 'GET',
+          headers: options.headers || {}
+        };
+        if (options.body != null) fetchOpts.body = options.body;
+        var res = await fetch(path, fetchOpts);
+        var data = {};
+        try { data = await res.json(); } catch (e) {}
+        if (res.status === 401) {
+          localStorage.removeItem(TOKEN_KEY);
+          localStorage.removeItem(ADMIN_KEY);
+          window.location.replace('/admin2');
+          throw new Error('Session expirée');
+        }
+        if (!res.ok) throw new Error(data.error || ('Erreur API (' + res.status + ')'));
+        return data;
+      }
+
+      async function loadData() {
+        pageError.hidden = true;
+        var data = await api('/api/reservations?source=' + encodeURIComponent(SOURCE), { headers: authHeaders() });
+        items = data.items || [];
+        renderStats(data.stats || {});
+        renderTable();
+      }
+
+      function renderStats(stats) {
+        statsEl.innerHTML =
+          '<article><span>Inscriptions PMDEAF</span><strong>' + (stats.count || 0) + '</strong></article>' +
+          '<article><span>Montant total</span><strong>' + money(stats.totalAmount || 0) + '</strong></article>' +
+          '<article><span>Payées</span><strong>' + ((stats.byPayment && stats.byPayment.paid) || 0) + '</strong></article>' +
+          '<article><span>Présents</span><strong>' + (stats.present || 0) + '</strong></article>';
+      }
+
+      function filtered() {
+        var q = document.getElementById('search').value.trim().toLowerCase();
+        var payment = document.getElementById('filter-payment').value;
+        var status = document.getElementById('filter-status').value;
+        return items.filter(function (item) {
+          if (payment && item.paymentStatus !== payment) return false;
+          if (status && item.status !== status) return false;
+          if (!q) return true;
+          var hay = [item.fullName, item.phone, item.email, item.organization, item.companions, item.notes]
+            .join(' ').toLowerCase();
+          return hay.indexOf(q) !== -1;
+        });
+      }
+
+      function renderTable() {
+        var list = filtered();
+        rowsEl.innerHTML = '';
+        emptyEl.hidden = list.length > 0;
+        list.forEach(function (item) {
+          var tr = document.createElement('tr');
+          tr.innerHTML =
+            '<td>' + fmtDate(item.createdAt) + '</td>' +
+            '<td><strong>' + escapeHtml(item.fullName) + '</strong><br><small dir="ltr">' + escapeHtml(item.phone) + '</small></td>' +
+            '<td>' + escapeHtml(item.roomType || item.roomLabel || '') + '</td>' +
+            '<td>' + (item.occupants || 1) + '</td>' +
+            '<td><strong>' + money(item.totalAmount) + '</strong></td>' +
+            '<td><span class="pill pay-' + escapeHtml(item.paymentStatus || '') + '">' + paymentLabel(item.paymentStatus) + '</span></td>' +
+            '<td><span class="pill st-' + escapeHtml(item.status || '') + '">' + statusLabel(item.status) + '</span></td>' +
+            '<td>' + (item.presentAt
+              ? '<span class="pill pay-paid">Présent</span><br><small dir="ltr">' + escapeHtml(fmtDate(item.presentAt)) + '</small>'
+              : '<span class="pill">—</span>') + '</td>';
+          tr.addEventListener('click', function () { openDetail(item.id); });
+          rowsEl.appendChild(tr);
+        });
+      }
+
+      function openDetail(id) {
+        var item = items.find(function (x) { return x.id === id; });
+        if (!item) return;
+        currentId = id;
+        document.getElementById('detail-title').textContent = item.fullName || 'Réservation';
+        document.getElementById('detail-error').hidden = true;
+        document.getElementById('edit-status').value = item.status || 'new';
+        document.getElementById('edit-payment').value = item.paymentStatus || 'pending';
+        document.getElementById('edit-room-number').value = item.roomNumber || '';
+        document.getElementById('edit-notes').value = item.notes || '';
+        document.getElementById('detail-meta').innerHTML =
+          metaRow('Email', item.email) +
+          metaRow('Téléphone', item.phone) +
+          metaRow('Organisation', item.organization) +
+          metaRow('Qualité', item.role) +
+          metaRow('Formule', item.roomLabel || item.roomType) +
+          metaRow('N° chambre', item.roomNumber || '—') +
+          metaRow('Adultes / enfants', (item.adultsCount || 0) + ' / ' + (item.childrenCount || 0)) +
+          metaRow('Occupants', item.occupants) +
+          metaRow('Accompagnants', item.companions || '—') +
+          metaRow('Détail montant', item.breakdown || '—') +
+          metaRow('Total', money(item.totalAmount)) +
+          metaRow('Créée le', fmtDate(item.createdAt));
+        detail.showModal();
+      }
+
+      function metaRow(label, value) {
+        return '<div><span>' + escapeHtml(label) + '</span><b>' + escapeHtml(String(value == null ? '—' : value)) + '</b></div>';
+      }
+
+      document.getElementById('logout-btn').addEventListener('click', function () {
+        localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(ADMIN_KEY);
+        window.location.href = '/admin2';
+      });
+
+      document.getElementById('refresh-btn').addEventListener('click', function () {
+        loadData().catch(function (e) {
+          pageError.hidden = false;
+          pageError.textContent = e.message;
+        });
+      });
+
+      ['search', 'filter-payment', 'filter-status'].forEach(function (id) {
+        document.getElementById(id).addEventListener('input', renderTable);
+        document.getElementById(id).addEventListener('change', renderTable);
+      });
+
+      document.getElementById('save-btn').addEventListener('click', async function () {
+        var err = document.getElementById('detail-error');
+        err.hidden = true;
+        try {
+          await api('/api/reservations/' + currentId, {
+            method: 'PATCH',
+            headers: authHeaders(),
+            body: JSON.stringify({
+              status: document.getElementById('edit-status').value,
+              paymentStatus: document.getElementById('edit-payment').value,
+              roomNumber: document.getElementById('edit-room-number').value.trim(),
+              notes: document.getElementById('edit-notes').value.trim()
+            })
+          });
+          detail.close();
+          await loadData();
+        } catch (ex) {
+          err.hidden = false;
+          err.textContent = ex.message;
+        }
+      });
+
+      document.getElementById('delete-btn').addEventListener('click', async function () {
+        if (!confirm('Supprimer cette réservation ?')) return;
+        try {
+          await api('/api/reservations/' + currentId, {
+            method: 'DELETE',
+            headers: authHeaders()
+          });
+          detail.close();
+          await loadData();
+        } catch (ex) {
+          document.getElementById('detail-error').hidden = false;
+          document.getElementById('detail-error').textContent = ex.message;
+        }
+      });
+
+      function csvEscape(val) {
+        return '"' + String(val == null ? '' : val).replace(/"/g, '""') + '"';
+      }
+
+      function downloadCsv(filename, headers, rows) {
+        var lines = [headers.join(';')];
+        rows.forEach(function (row) {
+          lines.push(headers.map(function (key) { return csvEscape(row[key]); }).join(';'));
+        });
+        var blob = new Blob(['\uFEFF' + lines.join('\n')], { type: 'text/csv;charset=utf-8' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+
+      function companionsOf(item) {
+        if (Array.isArray(item.companionsList) && item.companionsList.length) return item.companionsList;
+        return [];
+      }
+
+      function roomTypeLabel(type) {
+        return ({
+          single: 'فردية',
+          double: 'مزدوجة',
+          triple: 'ثلاثية',
+          quad: 'رباعية',
+          none: 'دون إقامة'
+        })[type] || type || '';
+      }
+
+      document.getElementById('export-participants').addEventListener('click', function () {
+        var rows = filtered().map(function (item) {
+          return {
+            fullName: item.fullName,
+            email: item.email,
+            phone: item.phone,
+            organization: item.organization,
+            role: item.role,
+            source: item.source,
+            roomType: roomTypeLabel(item.roomType),
+            roomNumber: item.roomNumber || '',
+            status: item.status,
+            paymentStatus: item.paymentStatus,
+            totalAmount: item.totalAmount
+          };
+        });
+        downloadCsv('liste-participants-formation.csv', [
+          'fullName','email','phone','organization','role','source','roomType','roomNumber','status','paymentStatus','totalAmount'
+        ], rows);
+      });
+
+      document.getElementById('export-inscrits').addEventListener('click', function () {
+        var rows = [];
+        filtered().forEach(function (item) {
+          rows.push({
+            bookingId: item.id,
+            fullName: item.fullName,
+            personRole: 'مشارك في التكوين',
+            type: 'participant',
+            email: item.email,
+            phone: item.phone,
+            organization: item.organization,
+            source: item.source,
+            roomType: roomTypeLabel(item.roomType),
+            roomNumber: item.roomNumber || '',
+            birthDate: '',
+            totalAmount: item.totalAmount,
+            bookingOwner: item.fullName
+          });
+          companionsOf(item).forEach(function (c) {
+            rows.push({
+              bookingId: item.id,
+              fullName: c.name,
+              personRole: c.type === 'child'
+                ? 'طفل مرافق (غير مشارك)'
+                : (c.participant ? 'مرافق بالغ (مشارك)' : 'مرافق بالغ (غير مشارك)'),
+              type: c.type || 'companion',
+              email: '',
+              phone: '',
+              organization: item.organization,
+              source: item.source,
+              roomType: roomTypeLabel(item.roomType),
+              roomNumber: item.roomNumber || '',
+              birthDate: c.birthDate || '',
+              totalAmount: item.totalAmount,
+              bookingOwner: item.fullName
+            });
+          });
+        });
+        downloadCsv('liste-generale-inscrits.csv', [
+          'bookingId','fullName','personRole','type','email','phone','organization','source','roomType','roomNumber','birthDate','totalAmount','bookingOwner'
+        ], rows);
+      });
+
+      document.getElementById('export-chambres').addEventListener('click', function () {
+        var rows = [];
+        filtered().forEach(function (item) {
+          if (item.roomType === 'none') return;
+          var occupants = [item.fullName + ' (مشارك)'];
+          companionsOf(item).forEach(function (c) {
+            occupants.push(c.name + (c.type === 'child' ? ' (طفل مرافق)' : ' (مرافق)'));
+          });
+          rows.push({
+            roomNumber: item.roomNumber || '',
+            roomType: roomTypeLabel(item.roomType),
+            bookingOwner: item.fullName,
+            occupants: occupants.join(' · '),
+            occupantsCount: item.occupants || occupants.length,
+            phone: item.phone,
+            organization: item.organization,
+            source: item.source,
+            totalAmount: item.totalAmount,
+            paymentStatus: item.paymentStatus,
+            status: item.status
+          });
+        });
+        downloadCsv('liste-repartition-chambres.csv', [
+          'roomNumber','roomType','bookingOwner','occupants','occupantsCount','phone','organization','source','totalAmount','paymentStatus','status'
+        ], rows);
+      });
+
+      loadData().catch(function (e) {
+        pageError.hidden = false;
+        pageError.textContent = e.message || 'Chargement impossible';
+      });
+    })();
+  </script>
+</body>
+</html>

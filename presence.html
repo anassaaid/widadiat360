@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>تأكيد الحضور — Amicale 360</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .presence-page {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 1.5rem;
+      background:
+        radial-gradient(ellipse at 20% 0%, rgba(201, 162, 39, 0.18), transparent 50%),
+        linear-gradient(160deg, #0b3d5c 0%, #0f4f72 45%, #143d52 100%);
+    }
+    .presence-card {
+      width: min(100%, 440px);
+      background: #fff;
+      border-radius: 18px;
+      padding: 1.6rem 1.4rem;
+      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.25);
+      text-align: center;
+    }
+    .presence-card h1 {
+      margin: 0 0 0.6rem;
+      color: var(--navy);
+      font-size: 1.45rem;
+    }
+    .presence-card p { margin: 0.4rem 0; color: #334; line-height: 1.55; }
+    .presence-card .muted { color: #667; font-size: 0.92rem; }
+    .presence-status {
+      display: inline-block;
+      margin: 0.85rem 0 0.4rem;
+      padding: 0.35rem 0.8rem;
+      border-radius: 999px;
+      font-weight: 800;
+      font-size: 0.9rem;
+    }
+    .presence-status.ok { background: #e7f7ee; color: #0f6b3a; }
+    .presence-status.warn { background: #fff4df; color: #8a5a00; }
+    .presence-status.err { background: #fdecea; color: #9b1c1c; }
+    .presence-meta { margin-top: 1rem; font-size: 0.88rem; color: #556; }
+  </style>
+</head>
+<body>
+  <main class="presence-page">
+    <section class="presence-card" id="card">
+      <h1 id="title">تأكيد الحضور</h1>
+      <p class="muted" id="subtitle">جارٍ التحقق من رمز QR…</p>
+      <div id="status" class="presence-status warn" hidden></div>
+      <div class="presence-meta" id="meta" hidden></div>
+    </section>
+  </main>
+  <script>
+    (function () {
+      var params = new URLSearchParams(window.location.search);
+      var token = (params.get("t") || params.get("token") || "").trim();
+      var title = document.getElementById("title");
+      var subtitle = document.getElementById("subtitle");
+      var statusEl = document.getElementById("status");
+      var meta = document.getElementById("meta");
+
+      function show(kind, statusText, name, extra) {
+        statusEl.hidden = false;
+        statusEl.className = "presence-status " + kind;
+        statusEl.textContent = statusText;
+        if (name) {
+          title.textContent = name;
+          subtitle.textContent = "تم التعرف على التسجيل";
+        }
+        if (extra) {
+          meta.hidden = false;
+          meta.innerHTML = extra;
+        }
+      }
+
+      if (!token) {
+        show("err", "رمز غير صالح", null, "افتحوا الرابط انطلاقاً من رمز QR الخاص بالحجز.");
+        subtitle.textContent = "تعذّر تأكيد الحضور";
+        return;
+      }
+
+      fetch("/api/presence", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ t: token })
+      })
+        .then(function (res) {
+          return res.json().then(function (data) {
+            if (!res.ok) throw new Error(data.error || "تعذّر التأكيد");
+            return data;
+          });
+        })
+        .then(function (data) {
+          var item = data.item || {};
+          var room = item.roomNumber
+            ? (item.roomLabel || "") + " — غرفة " + item.roomNumber
+            : (item.roomLabel || "—");
+          var when = item.presentAt
+            ? new Date(item.presentAt).toLocaleString("fr-TN")
+            : "";
+          var statusText = data.already ? "الحضور مؤكّد مسبقاً" : "تم تأكيد الحضور";
+          show(
+            "ok",
+            statusText,
+            item.fullName || "مشارك",
+            "<div>الإقامة: " + room + "</div>" +
+              (item.occupants ? "<div>عدد الشاغلين: " + item.occupants + "</div>" : "") +
+              (when ? '<div dir="ltr">Confirmé: ' + when + "</div>" : "")
+          );
+        })
+        .catch(function (err) {
+          subtitle.textContent = "تعذّر تأكيد الحضور";
+          show("err", err.message || "رمز غير معروف");
+        });
+    })();
+  </script>
+</body>
+</html>

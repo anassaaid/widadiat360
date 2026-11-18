@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>تسجيل منخرطي أملاك الدولة (PMDEAF)</title>
+  <meta name="description" content="استمارة منخرطي ودادية أملاك الدولة مع حساب آلي للمجموع — adhérent amicale PMDEAF.">
+  <meta name="theme-color" content="#0b2a4a">
+  <link rel="icon" href="assets/embleme.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Cormorant+Garamond:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=31">
+  <script src="assets/inscription-mail.js?v=2" defer></script>
+</head>
+<body>
+  <header class="top">
+    <a class="brand" href="index.html">
+      <img src="assets/embleme.png" alt="">
+      <span>
+        <strong>أكاديمية وداديات 360°</strong>
+        <span>adhérent amicale PMDEAF</span>
+      </span>
+    </a>
+    <a class="btn btn-line" href="index.html#pmdeaf" style="color:#fff;border-color:rgba(255,255,255,.35)">العودة</a>
+  </header>
+
+  <main class="calc-page">
+    <form id="pmdeaf-form" class="wrap calc-layout" style="margin-top:1.25rem" novalidate>
+      <section class="panel calc-form-panel calc-main">
+        <p class="kicker doc-label" style="direction:ltr;text-align:right">adhérent amicale PMDEAF</p>
+        <h2>استمارة منخرطي أملاك الدولة</h2>
+        <p class="intro">المسجّل مشارك في التكوين وهو الشخص الأول. لكل مرافق بالغ اختاروا إن كان مشاركاً في التكوين أو مرافقاً فقط — يُحسب المجموع تلقائياً حسب نوع الغرفة.</p>
+
+        <fieldset>
+          <legend>بيانات المسجّل</legend>
+          <label>
+            البريد الإلكتروني
+            <input type="email" name="emailAddress" required autocomplete="email" dir="ltr">
+          </label>
+          <label>
+            الاسم واللقب
+            <input type="text" name="entry.62294287" required autocomplete="name">
+          </label>
+          <label>
+            رقم الهاتف
+            <input type="tel" name="entry.547236381" required autocomplete="tel" dir="ltr">
+          </label>
+          <label>
+            الودادية / الهيكل
+            <input type="text" name="entry.1060024874" required value="ودادية أعوان وإطارات وزارة أملاك الدولة والشؤون العقارية">
+          </label>
+          <label>
+            الصفة
+            <select name="entry.1852923079" required>
+              <option value="">اختر…</option>
+              <option>رئيس ودادية</option>
+              <option>عضو ودادية</option>
+              <option>إطار أو موظف</option>
+            </select>
+          </label>
+        </fieldset>
+
+        <fieldset>
+          <legend>صيغة الإقامة والمرافقون</legend>
+          <label>
+            نوع الإقامة للمشارك
+            <select id="room" required>
+              <option value="">اختر…</option>
+              <option value="single" data-label="مع إقامة — غرفة فردية — 510 د للمشارك">غرفة فردية — 510 د</option>
+              <option value="double" data-label="مع إقامة — غرفة مزدوجة — 390 د للمشارك / 340 د للمرافق">غرفة مزدوجة — مشارك 390 د / مرافق 340 د</option>
+              <option value="triple" data-label="مع إقامة — غرفة ثلاثية — 370 د للمشارك / 320 د للمرافق">غرفة ثلاثية — مشارك 370 د / مرافق 320 د</option>
+              <option value="quad" data-label="مع إقامة — غرفة رباعية — 370 د للمشارك / 320 د للمرافق">غرفة رباعية — مشارك 370 د / مرافق 320 د</option>
+              <option value="none" data-label="مشاركة دون إقامة — 190 د">دون إقامة — 190 د</option>
+            </select>
+          </label>
+          <p class="calc-role-hint">ميّزوا بين المشاركين في التكوين والمرافقين غير المشاركين — التعريفة تختلف حسب الصفة ونوع الغرفة.</p>
+          <div class="calc-row calc-row-3">
+            <label>
+              مشاركون إضافيون في التكوين
+              <select id="extra-participants" required>
+                <option>0</option>
+                <option>1</option>
+                <option>2</option>
+                <option>3</option>
+              </select>
+            </label>
+            <label>
+              مرافقون (غير مشاركين)
+              <select id="companions-adults" name="entry.1277585675" required>
+                <option>0</option>
+                <option>1</option>
+                <option>2</option>
+                <option>3</option>
+              </select>
+            </label>
+            <label>
+              أطفال أقل من 12 سنة
+              <select id="children" name="entry.78812932" required>
+                <option>0</option>
+                <option>1</option>
+                <option>2</option>
+                <option>3</option>
+                <option>4</option>
+              </select>
+            </label>
+          </div>
+          <div id="companions-box" class="companions-box" hidden>
+            <p class="companions-title">بيانات المشاركين الإضافيين والمرافقين والأطفال</p>
+            <div id="companions-fields"></div>
+          </div>
+          <p class="calc-hint" id="capacity-hint" hidden></p>
+        </fieldset>
+
+        <fieldset>
+          <legend>الخلاص</legend>
+          <label>
+            حالة الخلاص
+            <select name="entry.1247174649" required>
+              <option value="">اختر…</option>
+              <option>سيتم التحويل البنكي قريباً</option>
+              <option>تم التحويل — سأرسل إثبات الدفع</option>
+              <option>خلاص لاحقاً بعد التأكيد</option>
+            </select>
+          </label>
+          <label>
+            ملاحظات
+            <textarea name="entry.841229448" rows="2"></textarea>
+          </label>
+        </fieldset>
+      </section>
+
+      <aside class="panel calc-summary" aria-live="polite">
+        <h2>تفصيل المبلغ</h2>
+        <ul class="calc-lines" id="calc-lines">
+          <li class="muted">اختروا نوع الإقامة لعرض الحساب</li>
+        </ul>
+        <p class="calc-total">المجموع النهائي <strong id="calc-total">—</strong> <span>د.ت</span></p>
+        <p class="calc-meta" id="calc-meta"></p>
+        <p class="calc-footnote">مزدوجة: مشارك 390 / مرافق 340 — ثلاثية أو رباعية: مشارك 370 / مرافق 320 — طفل أقل من 12 سنة: 270 د. معلوم الإقامة يُدفع في النزل.</p>
+      </aside>
+
+      <div class="panel calc-actions">
+        <p class="calc-error" id="form-error" hidden></p>
+        <button class="btn btn-gold" type="submit" id="submit-btn">تأكيد التسجيل وإرسال</button>
+        <p class="calc-note">بالإرسال تؤكّدون أنكم منخرطون في ودادية أعوان وإطارات وزارة أملاك الدولة والشؤون العقارية.</p>
+        <div class="calc-success" id="success" hidden>
+          <h2>تم إرسال التسجيل</h2>
+          <p class="success-mail-note" id="success-mail-note">
+            سيتم إرسال بريد إلكتروني إلى <strong id="success-email"></strong>
+            يتضمن ملخص الحجز ورمز QR لتأكيد الحضور عند المسح يوم الفعالية.
+          </p>
+          <ul class="success-recap" id="success-recap"></ul>
+          <div class="success-breakdown" id="success-breakdown" hidden></div>
+          <div class="success-qr-wrap">
+            <img id="success-qr" alt="رمز QR لتأكيد الحضور" width="200" height="200" />
+            <p>رمز QR لتأكيد الحضور — يُعرض أيضاً في البريد الإلكتروني</p>
+          </div>
+          <a class="btn btn-line" href="index.html">العودة إلى الصفحة الرئيسية</a>
+        </div>
+      </div>
+    </form>
+  </main>
+
+  <iframe name="gform-target" title="hidden" style="display:none"></iframe>
+
+  <script>
+    (function () {
+      var PRICES = {
+        single: { price: 510, companion: 0, cap: 1, label: "مشارك — غرفة فردية" },
+        double: { price: 390, companion: 340, cap: 2, label: "مشارك — غرفة مزدوجة" },
+        triple: { price: 370, companion: 320, cap: 3, label: "مشارك — غرفة ثلاثية" },
+        quad: { price: 370, companion: 320, cap: 4, label: "مشارك — غرفة رباعية" },
+        none: { price: 190, companion: 0, cap: 1, label: "مشارك — دون إقامة" }
+      };
+      var CHILD = 270;
+      var EVENT_DATE = new Date(2026, 10, 27);
+      var API_URL = "/api/reservations";
+
+      var roomEl = document.getElementById("room");
+      var extraParticipantsEl = document.getElementById("extra-participants");
+      var companionsAdultsEl = document.getElementById("companions-adults");
+      var childrenEl = document.getElementById("children");
+      var companionsBox = document.getElementById("companions-box");
+      var companionsFields = document.getElementById("companions-fields");
+      var linesEl = document.getElementById("calc-lines");
+      var totalEl = document.getElementById("calc-total");
+      var metaEl = document.getElementById("calc-meta");
+      var hintEl = document.getElementById("capacity-hint");
+      var form = document.getElementById("pmdeaf-form");
+      var errorEl = document.getElementById("form-error");
+      var submitBtn = document.getElementById("submit-btn");
+
+      function ageOnEvent(isoDate) {
+        if (!isoDate) return null;
+        var parts = isoDate.split("-");
+        if (parts.length !== 3) return null;
+        var birth = new Date(+parts[0], +parts[1] - 1, +parts[2]);
+        var age = EVENT_DATE.getFullYear() - birth.getFullYear();
+        var m = EVENT_DATE.getMonth() - birth.getMonth();
+        if (m < 0 || (m === 0 && EVENT_DATE.getDate() < birth.getDate())) age -= 1;
+        return age;
+      }
+
+      function formatBirth(isoDate) {
+        var parts = isoDate.split("-");
+        return parts[2] + "/" + parts[1] + "/" + parts[0];
+      }
+
+      function counts() {
+        return {
+          extraParticipants: parseInt(extraParticipantsEl.value, 10) || 0,
+          companions: parseInt(companionsAdultsEl.value, 10) || 0,
+          children: parseInt(childrenEl.value, 10) || 0
+        };
+      }
+
+      function saveCompanionValues() {
+        var saved = {};
+        companionsFields.querySelectorAll("[data-key]").forEach(function (input) {
+          saved[input.getAttribute("data-key")] = input.value;
+        });
+        return saved;
+      }
+
+      function renderCompanions() {
+        var c = counts();
+        var saved = saveCompanionValues();
+        companionsFields.innerHTML = "";
+
+        if (c.extraParticipants + c.companions + c.children === 0) {
+          companionsBox.hidden = true;
+          return;
+        }
+        companionsBox.hidden = false;
+
+        var i;
+        for (i = 1; i <= c.extraParticipants; i++) {
+          var participantBlock = document.createElement("div");
+          participantBlock.className = "companion-card";
+          participantBlock.innerHTML =
+            '<p class="companion-label">مشارك في التكوين ' + i + ' <span>(تعريفة المشارك)</span></p>' +
+            '<label>الاسم واللقب' +
+            '<input type="text" data-key="participant-name-' + i + '" required autocomplete="name" placeholder="الاسم الكامل">' +
+            "</label>";
+          companionsFields.appendChild(participantBlock);
+        }
+
+        for (i = 1; i <= c.companions; i++) {
+          var companionBlock = document.createElement("div");
+          companionBlock.className = "companion-card";
+          companionBlock.innerHTML =
+            '<p class="companion-label">مرافق (غير مشارك) ' + i + ' <span>(تعريفة المرافق)</span></p>' +
+            '<label>الاسم واللقب' +
+            '<input type="text" data-key="companion-name-' + i + '" required autocomplete="name" placeholder="الاسم الكامل">' +
+            "</label>";
+          companionsFields.appendChild(companionBlock);
+        }
+
+        for (i = 1; i <= c.children; i++) {
+          var childBlock = document.createElement("div");
+          childBlock.className = "companion-card";
+          childBlock.innerHTML =
+            '<p class="companion-label">طفل ' + i + ' <span>(أقل من 12 سنة — 270 د)</span></p>' +
+            '<div class="calc-row">' +
+            '<label>الاسم واللقب' +
+            '<input type="text" data-key="child-name-' + i + '" required autocomplete="name" placeholder="الاسم الكامل">' +
+            "</label>" +
+            '<label>تاريخ الميلاد' +
+            '<input type="date" data-key="child-birth-' + i + '" required max="2026-11-26" dir="ltr">' +
+            "</label>" +
+            "</div>";
+          companionsFields.appendChild(childBlock);
+        }
+
+        Object.keys(saved).forEach(function (key) {
+          var input = companionsFields.querySelector('[data-key="' + key + '"]');
+          if (input) input.value = saved[key];
+        });
+      }
+
+      function collectCompanions() {
+        var c = counts();
+        var list = [];
+        var lines = [];
+        var i;
+
+        for (i = 1; i <= c.extraParticipants; i++) {
+          var participantName = companionsFields.querySelector('[data-key="participant-name-' + i + '"]');
+          var pname = participantName ? participantName.value.trim() : "";
+          if (!pname) return { ok: false, message: "أدخلوا اسم المشارك الإضافي في التكوين " + i + "." };
+          list.push({ name: pname, type: "adult", role: "participant", participant: true });
+          lines.push(pname + " — مشارك في التكوين");
+        }
+
+        for (i = 1; i <= c.companions; i++) {
+          var companionName = companionsFields.querySelector('[data-key="companion-name-' + i + '"]');
+          var cnameAdult = companionName ? companionName.value.trim() : "";
+          if (!cnameAdult) return { ok: false, message: "أدخلوا اسم المرافق (غير مشارك) " + i + "." };
+          list.push({ name: cnameAdult, type: "adult", role: "companion", participant: false });
+          lines.push(cnameAdult + " — مرافق (غير مشارك)");
+        }
+
+        for (i = 1; i <= c.children; i++) {
+          var childName = companionsFields.querySelector('[data-key="child-name-' + i + '"]');
+          var childBirth = companionsFields.querySelector('[data-key="child-birth-' + i + '"]');
+          var cname = childName ? childName.value.trim() : "";
+          var birth = childBirth ? childBirth.value : "";
+          if (!cname) return { ok: false, message: "أدخلوا اسم الطفل " + i + "." };
+          if (!birth) return { ok: false, message: "أدخلوا تاريخ ميلاد الطفل " + i + "." };
+          var age = ageOnEvent(birth);
+          if (age === null || age < 0) return { ok: false, message: "تاريخ ميلاد الطفل " + i + " غير صالح." };
+          if (age >= 12) {
+            return {
+              ok: false,
+              message: "الطفل " + i + " سيكون عمره " + age + " سنة في نوفمبر 2026 — تعريفة الطفل تخصّ من هم دون 12 سنة."
+            };
+          }
+          list.push({
+            name: cname,
+            type: "child",
+            role: "companion",
+            participant: false,
+            birthDate: birth,
+            age: age
+          });
+          lines.push(cname + " — طفل — " + formatBirth(birth) + " (" + age + " سنة)");
+        }
+
+        return { ok: true, text: lines.join(" · "), list: list };
+      }
+
+      function fillSelect(el, maxVal, selected) {
+        var prev = selected != null ? selected : (parseInt(el.value, 10) || 0);
+        var chosen = Math.max(0, Math.min(prev, maxVal));
+        el.innerHTML = "";
+        for (var i = 0; i <= maxVal; i++) {
+          var opt = document.createElement("option");
+          opt.value = String(i);
+          opt.textContent = String(i);
+          if (i === chosen) opt.selected = true;
+          el.appendChild(opt);
+        }
+      }
+
+      function maxExtraSeats() {
+        var key = roomEl.value;
+        if (!key || !PRICES[key]) return 0;
+        return Math.max(0, PRICES[key].cap - 1);
+      }
+
+      function applyCapacityLimits(changed) {
+        var maxExtra = maxExtraSeats();
+        var extra = parseInt(extraParticipantsEl.value, 10) || 0;
+        var companions = parseInt(companionsAdultsEl.value, 10) || 0;
+        var children = parseInt(childrenEl.value, 10) || 0;
+
+        function clampTrio(e, a, ch) {
+          e = Math.max(0, Math.min(e, maxExtra));
+          a = Math.max(0, Math.min(a, maxExtra - e));
+          ch = Math.max(0, Math.min(ch, maxExtra - e - a));
+          fillSelect(extraParticipantsEl, maxExtra, e);
+          e = parseInt(extraParticipantsEl.value, 10) || 0;
+          fillSelect(companionsAdultsEl, maxExtra - e, a);
+          a = parseInt(companionsAdultsEl.value, 10) || 0;
+          fillSelect(childrenEl, maxExtra - e - a, ch);
+        }
+
+        if (changed === "extra") {
+          clampTrio(extra, companions, children);
+        } else if (changed === "companions") {
+          clampTrio(extra, companions, children);
+        } else if (changed === "children") {
+          children = Math.min(children, maxExtra);
+          var adultsLeft = Math.max(0, maxExtra - children);
+          if (extra + companions > adultsLeft) {
+            companions = Math.min(companions, adultsLeft);
+            extra = Math.min(extra, adultsLeft - companions);
+          }
+          clampTrio(extra, companions, children);
+        } else {
+          clampTrio(extra, companions, children);
+        }
+
+        var disabled = maxExtra === 0;
+        extraParticipantsEl.disabled = disabled;
+        companionsAdultsEl.disabled = disabled;
+        childrenEl.disabled = disabled;
+      }
+
+      function compute() {
+        var key = roomEl.value;
+        var c = counts();
+        var participantCount = 1 + c.extraParticipants;
+        var companionCount = c.companions;
+        var people = 1 + c.extraParticipants + c.companions + c.children;
+        var lines = [];
+        var total = 0;
+        var ok = true;
+        var message = "";
+
+        if (!key) {
+          linesEl.innerHTML = '<li class="muted">اختروا نوع الإقامة لعرض الحساب</li>';
+          totalEl.textContent = "—";
+          metaEl.textContent = "";
+          hintEl.hidden = true;
+          return null;
+        }
+
+        var room = PRICES[key];
+        if (people > room.cap) {
+          ok = false;
+          message = "طاقة الغرفة " + room.cap + " أشخاص كحد أقصى (بما في ذلك المشارك). الحالي: " + people + ".";
+        }
+
+        if (participantCount === 1) {
+          lines.push({ text: room.label, amount: room.price });
+        } else {
+          lines.push({ text: room.label + " × " + participantCount, amount: participantCount * room.price });
+        }
+        total += participantCount * room.price;
+
+        if (companionCount > 0) {
+          lines.push({
+            text: "مرافق (غير مشارك) × " + companionCount,
+            amount: companionCount * room.companion
+          });
+          total += companionCount * room.companion;
+        }
+        if (c.children > 0) {
+          lines.push({ text: "طفل أقل من 12 سنة × " + c.children, amount: c.children * CHILD });
+          total += c.children * CHILD;
+        }
+
+        linesEl.innerHTML = lines.map(function (line) {
+          return "<li><span>" + line.text + "</span><b>" + line.amount.toLocaleString("fr-TN") + " د</b></li>";
+        }).join("");
+        totalEl.textContent = total.toLocaleString("fr-TN");
+        metaEl.textContent =
+          "الشاغلون: " + people + "/" + room.cap +
+          " — مشاركون: " + participantCount +
+          " · مرافقون: " + companionCount +
+          " · أطفال: " + c.children;
+
+        if (!ok) {
+          hintEl.hidden = false;
+          hintEl.textContent = message;
+          hintEl.className = "calc-hint is-error";
+        } else {
+          hintEl.hidden = false;
+          hintEl.textContent = "الحساب جاهز — يمكن تأكيد التسجيل. طاقة الغرفة محترمة (" + people + "/" + room.cap + ").";
+          hintEl.className = "calc-hint is-ok";
+        }
+
+        var breakdown = lines.map(function (line) {
+          return line.text + ": " + line.amount + " د";
+        }).join(" · ") + " · المجموع: " + total + " د";
+
+        var opt = roomEl.options[roomEl.selectedIndex];
+        return {
+          ok: ok,
+          total: total,
+          people: people,
+          breakdown: breakdown,
+          roomLabel: opt.getAttribute("data-label"),
+          adultsCount: c.extraParticipants + c.companions,
+          childrenCount: c.children
+        };
+      }
+
+      function refresh(changed) {
+        applyCapacityLimits(changed || "room");
+        renderCompanions();
+        compute();
+      }
+
+      roomEl.addEventListener("change", function () { refresh("room"); });
+      extraParticipantsEl.addEventListener("change", function () { refresh("extra"); });
+      companionsAdultsEl.addEventListener("change", function () { refresh("companions"); });
+      childrenEl.addEventListener("change", function () { refresh("children"); });
+      refresh("room");
+
+      form.addEventListener("submit", function (event) {
+        event.preventDefault();
+        errorEl.hidden = true;
+        var result = compute();
+        if (!result || !result.ok) {
+          errorEl.hidden = false;
+          errorEl.textContent = hintEl.textContent || "صحّحوا تركيبة الغرفة قبل الإرسال.";
+          return;
+        }
+        if (!form.reportValidity()) return;
+
+        var companions = collectCompanions();
+        if (!companions.ok) {
+          errorEl.hidden = false;
+          errorEl.textContent = companions.message;
+          return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = "جارٍ الإرسال…";
+
+        var paymentRaw = form["entry.1247174649"].value;
+        var paymentStatus = "pending";
+        if (paymentRaw.indexOf("تم التحويل") !== -1) paymentStatus = "paid";
+        else if (paymentRaw.indexOf("لاحقاً") !== -1) paymentStatus = "later";
+
+        var payload = {
+          source: "pmdeaf",
+          email: form.emailAddress.value.trim(),
+          fullName: form["entry.62294287"].value.trim(),
+          phone: form["entry.547236381"].value.trim(),
+          organization: form["entry.1060024874"].value.trim(),
+          role: form["entry.1852923079"].value,
+          roomType: roomEl.value,
+          roomLabel: result.roomLabel,
+          adultsCount: result.adultsCount || 0,
+          childrenCount: result.childrenCount || 0,
+          occupants: result.people,
+          companions: companions.text || "",
+          companionsList: companions.list || [],
+          totalAmount: result.total,
+          breakdown: result.breakdown,
+          paymentStatus: paymentStatus,
+          notes: (form["entry.841229448"].value.trim() || "") + (paymentRaw ? " | " + paymentRaw : "")
+        };
+
+        fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        })
+          .then(function (res) {
+            return res.json().then(function (data) {
+              if (!res.ok) throw new Error(data.error || "تعذّر الإرسال");
+              return data;
+            });
+          })
+          .then(function (data) {
+            var item = (data && data.item) || {};
+            function esc(s) {
+              return String(s == null ? "" : s)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;");
+            }
+            form.classList.add("is-submitted");
+            document.querySelector(".calc-page").classList.add("is-submitted");
+            document.getElementById("success").hidden = false;
+            document.getElementById("success-email").textContent = item.email || payload.email;
+            var mailNote = document.getElementById("success-mail-note");
+            if (data.emailSent) {
+              mailNote.innerHTML = "تم إرسال بريد إلكتروني إلى <strong id=\"success-email\"></strong> يتضمن ملخص الحجز ورمز QR.";
+              document.getElementById("success-email").textContent = item.email || payload.email;
+            } else {
+              mailNote.innerHTML = "احفظوا هذا الملخص ورمز QR. سيتم تفعيل إرسال البريد الإلكتروني قريباً إلى <strong id=\"success-email\"></strong>.";
+              document.getElementById("success-email").textContent = item.email || payload.email;
+            }
+            var recap = document.getElementById("success-recap");
+            var rows = [
+              ["الاسم", item.fullName || payload.fullName],
+              ["الهاتف", item.phone || payload.phone],
+              ["البريد", item.email || payload.email],
+              ["الهيكل", item.organization || payload.organization || "—"],
+              ["الصفة", item.role || payload.role || "—"],
+              ["الإقامة", item.roomLabel || payload.roomLabel],
+              ["عدد الشاغلين", String(item.occupants || payload.occupants || 1)],
+              ["المرافقون", item.companions || payload.companions || "بدون"],
+              ["المجموع", (Number(item.totalAmount != null ? item.totalAmount : result.total)).toLocaleString("fr-TN") + " د.ت"]
+            ];
+            recap.innerHTML = rows.map(function (row, idx) {
+              var cls = idx === rows.length - 1 ? ' class="recap-total"' : "";
+              return "<li" + cls + "><span>" + esc(row[0]) + "</span><strong>" + esc(row[1]) + "</strong></li>";
+            }).join("");
+            var breakdown = item.breakdown || payload.breakdown || result.breakdown || "";
+            var breakdownEl = document.getElementById("success-breakdown");
+            if (breakdown) {
+              breakdownEl.hidden = false;
+              breakdownEl.textContent = breakdown;
+            }
+            var qr = document.getElementById("success-qr");
+            if (item.qrUrl) {
+              qr.src = item.qrUrl;
+              qr.hidden = false;
+            } else {
+              qr.hidden = true;
+            }
+            if ((!data.emailSent || data.deferClientEmail) && window.AmicaleMail) {
+              window.AmicaleMail.sendRecapEmail(item);
+            }
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          })
+          .catch(function (err) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = "تأكيد التسجيل وإرسال";
+            errorEl.hidden = false;
+            errorEl.textContent = err.message || "تعذّر الإرسال. حاولوا مرة أخرى.";
+          });
+      });
+    })();
+  </script>
+</body>
+</html>
