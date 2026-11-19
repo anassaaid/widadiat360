@@ -751,6 +751,37 @@ button, a { -webkit-tap-highlight-color: transparent; }
   color: var(--muted);
   text-align: center;
 }
+.speakers .intro {
+  margin-top: 0.55rem;
+}
+.speakers-pair {
+  margin-top: 1.6rem;
+  align-items: start;
+}
+.speaker {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.speaker .shot {
+  padding: 0.4rem;
+}
+.speaker figcaption {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  text-align: center;
+}
+.speaker figcaption strong {
+  font-size: 1.15rem;
+  color: var(--navy);
+}
+.speaker figcaption span {
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
 .who-block {
   display: flex;
   flex-direction: column;
