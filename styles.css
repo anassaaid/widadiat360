@@ -758,6 +758,11 @@ button, a { -webkit-tap-highlight-color: transparent; }
   margin-top: 1.6rem;
   align-items: start;
 }
+@media (min-width: 901px) {
+  .speakers-pair {
+    grid-template-columns: 1fr 1fr;
+  }
+}
 .speaker {
   margin: 0;
   display: flex;
