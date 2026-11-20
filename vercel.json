@@ -1,6 +1,10 @@
 {
   "cleanUrls": true,
   "trailingSlash": false,
+  "redirects": [
+    { "source": "/inscription-pmdeaf", "destination": "/inscription-interne", "permanent": true },
+    { "source": "/inscription-pmdeaf.html", "destination": "/inscription-interne", "permanent": true }
+  ],
   "headers": [
     {
       "source": "/admin(.*)",
